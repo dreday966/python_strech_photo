@@ -6,7 +6,6 @@ from skimage import feature, io
 
 from mathTest import calculateLa, map, makeLa
 
-
 im=io.imread('/Users/dreday/Downloads/1.pic.jpg', flatten=True);
 edges1 = feature.canny(im)
 edges2 = feature.canny(im, sigma=5)

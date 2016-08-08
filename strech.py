@@ -36,6 +36,16 @@ def triangle_area(a, b, c):
 	numerator = ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)
 	return abs(numerator / 2)
 
+def triangle_area_pointv(a, b, c):
+	ax = a.x
+	ay = a.y
+	bx = b.x
+	by = b.y
+	cx = c.x
+	cy = c.y
+	numerator = ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)
+	return abs(numerator / 2)
+
 def quadrilateral_area(a, b, c, d):
 	ax = a['x']
 	ay = a['y']
@@ -97,53 +107,49 @@ def lashen(p1, p2, img):
 			# else:
 			# 	print('bad')
 		print(cur_w) 
-lashen({'x': 100,'y': 0} , {'x': 200,'y':100}, im)
+# lashen({'x': 100,'y': 0} , {'x': 200,'y':100}, im)
+
+class Point:
+	def __init__(self, x, y):
+		self.x = x
+		self.y = y
+
+class Line:
+	def __init__(self, p1, p2):
+		self.p1 = p1 
+		self.p2 = p2
+
+# line length 
+def point_to_point_distance(p1, p2):
+	return ((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2) ** 0.5
+
+# 点到线的距离 
+def point_to_line_distance(point, line):
+	area = triangle_area_pointv(point, line.p1, line.p2)
+	dis = point_to_point_distance(line.p1, line.p2)
+	return area * 2 / dis
 
 
-class Point{
-	x
-	y
-}
-Point()
-
-def hui
-	
-		
-
-	# h = len(img)
-	# w = len(img[0])
-	# p1 = a
-	# p2 = b
-	# la = makeLa(w, h)
-	# for i, li in enumerate(img):
-	# 	cur_p1 = (1 - i / h) * p1
-	# 	cur_p2 = p2 + (i / h) * (w - p2)
-	# 	cur_w = cur_p2 - cur_p1
-
-	# 	for j, ele in enumerate(li):
-	# 		if j <= cur_p1 or j >= cur_p2: continue
-	# 		rel = j - cur_p1
-	# 		quzheng = int(rel / cur_w * w)
-	# 		la[i][quzheng].append(ele)
-	
-	# return calculateLa(la)
 
 
-new_im = strech(411, 2700 ,im)
-# print(new_im)
 
-fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),sharex=True, sharey=True)
 
-ax1.imshow(im, cmap=plt.cm.gray)
-ax1.axis('off')
-ax1.set_title('拉伸前', fontsize=20)
 
-ax2.imshow(new_im, cmap=plt.cm.gray)
-ax2.axis('off')
-ax2.set_title('拉伸后', fontsize=20)
 
-fig.tight_layout()
+# new_im = strech(411, 2700 ,im)
 
-plt.show()
+# fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),sharex=True, sharey=True)
+
+# ax1.imshow(im, cmap=plt.cm.gray)
+# ax1.axis('off')
+# ax1.set_title('拉伸前', fontsize=20)
+
+# ax2.imshow(new_im, cmap=plt.cm.gray)
+# ax2.axis('off')
+# ax2.set_title('拉伸后', fontsize=20)
+
+# fig.tight_layout()
+
+# plt.show()
 
 
