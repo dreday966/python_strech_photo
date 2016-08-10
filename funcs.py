@@ -1,9 +1,10 @@
 from skimage import data, io
 from mathTest import makeLa, calculateLa
 import matplotlib.pyplot as plt
-import pydash as py_
-from pydash import flatten
-im=io.imread('/Users/dreday/Downloads/IMG_1345.JPG', flatten=True)
+from pydash import py_, flatten
+from math import atan2
+import math
+im=io.imread('/Users/dreday/Downloads/1.pic.jpg', flatten=True)
 
 def triangle_area(a, b, c):
 	ax = a.x
@@ -15,16 +16,57 @@ def triangle_area(a, b, c):
 	numerator = ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)
 	return abs(numerator / 2)
 
+
 class Point:
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
 
 class Line:
-	def __init__(self, p1, p2):
-		self.p1 = p1 
-		self.p2 = p2
+  def slope(self) :
+    a = self.p1.y - self.p2.y
+    b = self.p1.x - self.p2.x
+    return atan2(a, b)
+    
+  def constan_c(self):
+    if abs(self.slope()) == math.pi / 2:
+      return self.p1.x
+    else:
+      return self.p1.y - math.tan(self.slope()) * self.p1.x
+  
+  def intersection(self,point,slope):
+    slope1 = self.slope()
+    c = point.y - point.x * math.tan(slope) 
+    c1 = self.constan_c()
+    if abs(slope1) == math.pi / 2 and slope == math.pi / 2:
+      raise Exception('parallel') 
+    elif abs(slope1) == math.pi / 2:
+      x = self.p1.x
+      y = x * math.tan(slope) + c
+      return Point(x, y)
+    elif abs(slope) == math.pi / 2:
+      x = point.x
+      y = x * math.tan(slope1) + c1
+      return Point(x,y)
+    elif slope1 == slope:
+      raise Exception('parallel')
+    else:
+      x = (c - c1) / (math.tan(slope1) - math.tan(slope))
+      y = math.tan(slope) * x + c
+      return Point(x,y) 
 
+
+    # radius2 = (point.y ** 2 + point.x ** 2) ** 0.5
+    # slope1 = self.slope()
+    # radius1 = self.y_axis_intercept()
+    # x = (c2 - c1) / (g1 - gradient)
+    # y = x * g1 + c1
+    # return Point(x,y)
+  
+  def __init__(self, p1, p2):
+    self.p1 = p1 
+    self.p2 = p2
+  
 class Quadrilateral:
   def __init__(self, p1, p2, p3, p4):
     self.p1 = p1 
@@ -44,6 +86,40 @@ class Quadrilateral:
     numerator = (ax*by-ay*bx) + (bx*cy-by*cx) + (cx*dy -cy*dx) + (dx*ay - dy*ax)
     return abs(numerator / 2)
 
+  def vertical_transversal_dis(self, point):
+    line = Line(self.p3, self.p4)
+    inter = line.slope()
+    
+    slope = None
+    if inter > 0:
+      slope = inter - math.pi / 2
+    else:
+      slope = inter + math.pi / 2
+    intersection = line.intersection(point, slope)
+
+    line2 = Line(self.p1, self.p2)
+    intersection2 = line2.intersection(point, slope)
+    dis = point_to_point_distance(intersection, intersection2)
+    return dis 
+
+  def horizental_transversal_dis(self, point):
+    line = Line(self.p3, self.p4)
+    slope = line.slope()
+
+    line1 = Line(self.p1, self.p4)
+    line2 = Line(self.p2, self.p3)
+    p1 = line1.intersection(point, slope)
+    p2 = line2.intersection(point, slope)
+    return point_to_point_distance(p1,p2)
+
+  def vertical_coordinate(self, point):
+    line = Line(self.p3, self.p4)
+    return point_to_line_distance(point, line)
+
+  def horizental_coordinate(self, point):
+    line = Line(self.p1, self.p4)
+    return point_to_line_distance(point, line)
+
   def is_point_on_me(self, point):
     area1 = triangle_area(self.p1, self.p2, point)
     area2 = triangle_area(self.p2, self.p3, point)
@@ -51,6 +127,11 @@ class Quadrilateral:
     area4 = triangle_area(self.p4, self.p1, point)
     sum = area1 + area2 + area3 + area4
     return self.area() == sum
+    
+  def get_width(self):
+    [p3,p4]=[self.p3,self.p4]
+    d=point_to_point_distance(p3,p4)
+    return round(d)
 
 # line length 
 def point_to_point_distance(p1, p2):
@@ -62,6 +143,14 @@ def point_to_line_distance(point, line):
 	dis = point_to_point_distance(line.p1, line.p2)
 	return area * 2 / dis
 
+# def get_width(qua):
+#   [p3,p4]=[qua.p3,qua.p4]
+#   d=point_to_point_distance(p3,p4)
+#   return round(d)
+
+
+
+
 def get_height(qua):
   [p1,p2,p3,p4]=[qua.p1,qua.p2,qua.p3,qua.p4]
 
@@ -70,20 +159,83 @@ def get_height(qua):
   h2 = round(point_to_line_distance(p2, line))
   return max(h1, h2)
 
-
+def generate_rectangle(w, h):
+  arr=[]
+  for i in range(h):
+    li=[]
+    for j in range(w):
+      li.append(None)
+    arr.append(li)
+  return arr
 
 def transform(im, qua):
-  py_.map(enumerate(im))
+  h=get_height(qua)
+  arr=list(map(lambda x: [], range(h + 1)))
+
+  for i, li in enumerate(im):
+    for j, ele in enumerate(li):
+      point = Point(j, i)
+      line=Line(qua.p3, qua.p4)
+      if qua.is_point_on_me(point):
+        d=point_to_line_distance(point, line)
+        arr[round(d)].append(point)
+
+  qua_width=qua.get_width()
+  rect = generate_rectangle(qua_width, h)
+
+  for i,li in enumerate(rect):
+    points=arr[h - i]
+    for j,ele in enumerate(li):
+      width=len(points)
+      la=round((j + 1) / qua_width * width - 1)
+      try:
+        point=points[la]
+      except:
+        print(arr[268])
+        # print()
+      rect[i][j]=im[point.y][point.x]
+  return rect
+  
+
+
+
+
+
+
+##test
+
+p1 = Point(448,499)
+p2 = Point(836,708)
+p3 = Point(682,927)
+p4 = Point(262,655)
+qua = Quadrilateral(p1,p2,p3,p4)
+a = qua.vertical_coordinate(p1)
+print(a)
+
+
+# rect=transform(im, qua)
+
+# # new_im = strech(411, 2700 ,im)
+
+# fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),sharex=True, sharey=True)
+
+# ax1.imshow(im, cmap=plt.cm.gray)
+# ax1.axis('off')
+# ax1.set_title('拉伸前', fontsize=20)
+
+# ax2.imshow(rect, cmap=plt.cm.gray)
+# ax2.axis('off')
+# ax2.set_title('拉伸后', fontsize=20)
+
+# fig.tight_layout()
+
+# plt.show()
   
   
 
 
 
 
-# p1 = Point(4,10)
-# p2 = Point(11,8)
-# p3 = Point(11,2)
-# p4 = Point(2,2)
-# qua = Quadrilateral(p1,p2,p3,p4)
+
 # b=qua.is_point_on_me(Point(6,6))
 # print(b)
