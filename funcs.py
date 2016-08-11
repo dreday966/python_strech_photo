@@ -66,7 +66,13 @@ class Line:
   def __init__(self, p1, p2):
     self.p1 = p1 
     self.p2 = p2
+
+  def points_near_point(w, h, point, deep):
+    point
   
+  
+
+
 class Quadrilateral:
   def __init__(self, p1, p2, p3, p4):
     self.p1 = p1 
@@ -159,12 +165,12 @@ def get_height(qua):
   h2 = round(point_to_line_distance(p2, line))
   return max(h1, h2)
 
-def generate_rectangle(w, h):
+def generate_rectangle(w, h, la=None):
   arr=[]
   for i in range(h):
     li=[]
     for j in range(w):
-      li.append(None)
+      li.append(la)
     arr.append(li)
   return arr
 
@@ -209,8 +215,28 @@ p2 = Point(836,708)
 p3 = Point(682,927)
 p4 = Point(262,655)
 qua = Quadrilateral(p1,p2,p3,p4)
-a = qua.vertical_coordinate(p1)
-print(a)
+
+w=qua.get_width()
+h=get_height(qua)
+arr=generate_rectangle(w + 1,h + 1,[])
+
+
+for i,li in enumerate(im):
+  for j,ele in enumerate(li):
+    p = Point(j,i)
+    if qua.is_point_on_me(p):
+      hor_proportion = qua.horizental_coordinate(p) / qua.horizental_transversal_dis(p)
+      ver_proportion = qua.vertical_coordinate(p) / qua.horizental_transversal_dis(p)
+      a=round(ver_proportion * h)
+      b=round(hor_proportion * w)
+      arr[a][b] = p
+      # la.append()
+      # arr[a][b]=la
+    else:
+      print(123)
+print(2)
+print(arr)
+
 
 
 # rect=transform(im, qua)
