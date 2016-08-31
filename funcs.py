@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 from pydash import py_, flatten
 from math import atan2
 import math
+
+from scipy.spatial import KDTree
+
 im=io.imread('/Users/dreday/Downloads/1.pic.jpg', flatten=True)
+
+
 
 def triangle_area(a, b, c):
 	ax = a.x
@@ -67,11 +72,6 @@ class Line:
     self.p1 = p1 
     self.p2 = p2
 
-  def points_near_point(w, h, point, deep):
-    point
-  
-  
-
 
 class Quadrilateral:
   def __init__(self, p1, p2, p3, p4):
@@ -125,6 +125,13 @@ class Quadrilateral:
   def horizental_coordinate(self, point):
     line = Line(self.p1, self.p4)
     return point_to_line_distance(point, line)
+  
+  def normalizing_coordinate(self, point):
+    h_cor = self.horizental_coordinate(point)
+    h_dis = self.horizental_transversal_dis(point)
+    v_cor = self.vertical_coordinate(point)
+    v_dis = self.vertical_transversal_dis(point)
+    return (h_cor / h_dis, v_cor / v_dis)
 
   def is_point_on_me(self, point):
     area1 = triangle_area(self.p1, self.p2, point)
@@ -175,16 +182,15 @@ def generate_rectangle(w, h, la=None):
   return arr
 
 def transform(im, qua):
-  h=get_height(qua)
-  arr=list(map(lambda x: [], range(h + 1)))
-
+  points=[]
   for i, li in enumerate(im):
     for j, ele in enumerate(li):
       point = Point(j, i)
-      line=Line(qua.p3, qua.p4)
+      
       if qua.is_point_on_me(point):
-        d=point_to_line_distance(point, line)
-        arr[round(d)].append(point)
+        x, y = qua.normalizing_coordinate(point)
+        print(x)
+        print(y)
 
   qua_width=qua.get_width()
   rect = generate_rectangle(qua_width, h)
@@ -220,22 +226,28 @@ w=qua.get_width()
 h=get_height(qua)
 arr=generate_rectangle(w + 1,h + 1,[])
 
-
+points = []
+eles = []
 for i,li in enumerate(im):
   for j,ele in enumerate(li):
     p = Point(j,i)
     if qua.is_point_on_me(p):
-      hor_proportion = qua.horizental_coordinate(p) / qua.horizental_transversal_dis(p)
-      ver_proportion = qua.vertical_coordinate(p) / qua.horizental_transversal_dis(p)
-      a=round(ver_proportion * h)
-      b=round(hor_proportion * w)
-      arr[a][b] = p
-      # la.append()
-      # arr[a][b]=la
+      x, y = qua.normalizing_coordinate(p)
+      points.append([x * w, y * h])
+      eles.append(ele)
     else:
       print(123)
-print(2)
-print(arr)
+tree = KDTree(points)
+
+
+for i, li in enumerate(arr):
+  for j, ele in enumerate(li):
+    try:
+      xiabiao=tree.query([j, i])[1]
+      arr[i][j] = eles[xiabiao]
+    except:arr[i][j]=0
+
+
 
 
 
@@ -243,19 +255,19 @@ print(arr)
 
 # # new_im = strech(411, 2700 ,im)
 
-# fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),sharex=True, sharey=True)
+fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8, 3),sharex=True, sharey=True)
 
-# ax1.imshow(im, cmap=plt.cm.gray)
-# ax1.axis('off')
-# ax1.set_title('拉伸前', fontsize=20)
+ax1.imshow(arr, cmap=plt.cm.gray)
+ax1.axis('off')
+ax1.set_title('拉伸前', fontsize=20)
 
-# ax2.imshow(rect, cmap=plt.cm.gray)
-# ax2.axis('off')
-# ax2.set_title('拉伸后', fontsize=20)
+ax2.imshow(arr, cmap=plt.cm.gray)
+ax2.axis('off')
+ax2.set_title('拉伸后', fontsize=20)
 
-# fig.tight_layout()
+fig.tight_layout()
 
-# plt.show()
+plt.show()
   
   
 
